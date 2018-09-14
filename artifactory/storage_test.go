@@ -18,6 +18,7 @@ package artifactory
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
@@ -172,6 +173,8 @@ func Test_Storage(t *testing.T) {
 
 				var expected EffectiveItemPermissions
 				_ = json.Unmarshal(data, &expected)
+				fmt.Println(actual)
+				fmt.Println(expected)
 
 				g.Assert(actual.String() == expected.String()).IsTrue()
 			})
