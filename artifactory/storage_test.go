@@ -163,9 +163,12 @@ func Test_Storage(t *testing.T) {
 			g.It("- should return valid string for EffectiveItemPermissions with String()", func() {
 				actual := &EffectiveItemPermissions{
 					URI: String("http://localhost:8081/artifactory/api/storage/local-repo1/file"),
+					Principals: &Principals{
+						Users:  &map[string][]string{"user1": []string{"r"}, "user2": []string{"r", "d", "w", "m", "n"}},
+						Groups: &map[string][]string{"readers": []string{"r"}},
+					},
 				}
-
-				data, _ := ioutil.ReadFile("fixtures/storage/effective_permissions.json")
+				data, _ := ioutil.ReadFile("fixtures/storage/effective_permission.json")
 
 				var expected EffectiveItemPermissions
 				_ = json.Unmarshal(data, &expected)
@@ -183,7 +186,6 @@ func Test_Storage(t *testing.T) {
 
 				var expected ItemLastModified
 				_ = json.Unmarshal(data, &expected)
-
 				g.Assert(actual.String() == expected.String()).IsTrue()
 			})
 
@@ -277,6 +279,13 @@ func Test_Storage(t *testing.T) {
 
 			g.It("- should return no error with GetItemProperties()", func() {
 				actual, resp, err := c.Storage.GetItemProperties("local-repo1", "file")
+				g.Assert(actual != nil).IsTrue()
+				g.Assert(resp != nil).IsTrue()
+				g.Assert(err == nil).IsTrue()
+			})
+
+			g.It("- should return no error with GetEffectiveItemPermissions()", func() {
+				actual, resp, err := c.Storage.GetEffectiveItemPermissions("local-repo1", "file")
 				g.Assert(actual != nil).IsTrue()
 				g.Assert(resp != nil).IsTrue()
 				g.Assert(err == nil).IsTrue()

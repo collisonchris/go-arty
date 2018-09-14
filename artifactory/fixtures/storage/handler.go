@@ -19,7 +19,6 @@ func FakeHandler() http.Handler {
 	e.GET("/api/storage/:repository/folder", getFolder)
 	e.GET("/api/storage/:repository/file", getFile)
 	e.GET("/api/storageinfo", getStorageSummary)
-	e.GET("/api/storage/:repository/:file?permissions", getEffectivePermissions)
 
 	e.PUT("/api/storage/:repository/file", itemProperties)
 	e.DELETE("/api/storage/:repository/file", itemProperties)
@@ -29,6 +28,15 @@ func FakeHandler() http.Handler {
 
 func getFolder(c *gin.Context) {
 	repository := c.Param("repository")
+	perms := c.Query("permissions")
+	if len(perms) > 0 {
+		if strings.Contains(repository, "not-found") {
+			c.JSON(400, "This method can only be invoked on local/cached repositories.")
+			return
+		}
+
+		c.String(200, loadFixture("fixtures/storage/effective_permissions.json"))
+	}
 	if strings.Contains(repository, "not-found") {
 		c.JSON(404, fmt.Sprintf("Repository %s does not exist", repository))
 		return
@@ -85,20 +93,20 @@ func getStorageSummary(c *gin.Context) {
 	c.String(200, loadFixture("fixtures/storage/storage_summary.json"))
 }
 
-func getEffectivePermissions(c *gin.Context) {
-	repository := c.Param("repository")
-	file := c.Param("file")
-	if strings.Contains(repository, "not-found") {
-		c.JSON(400, "This method can only be invoked on local/cached repositories.")
-		return
-	}
-	if strings.Contains(file, "not-found") {
-		c.JSON(404, fmt.Sprintf("Unable to find item '%s:%s'.", repository, file))
-		return
-	}
+// func getEffectivePermissions(c *gin.Context) {
+// 	repository := c.Param("repository")
+// 	file := c.Param("file")
+// 	if strings.Contains(repository, "not-found") {
+// 		c.JSON(400, "This method can only be invoked on local/cached repositories.")
+// 		return
+// 	}
+// 	if strings.Contains(file, "not-found") {
+// 		c.JSON(404, fmt.Sprintf("Unable to find item '%s:%s'.", repository, file))
+// 		return
+// 	}
 
-	c.String(200, loadFixture("fixtures/storage/effective_permissions.json"))
-}
+// 	c.String(200, loadFixture("fixtures/storage/effective_permissions.json"))
+// }
 
 func loadFixture(file string) string {
 	data, _ := ioutil.ReadFile(file)
